@@ -1,0 +1,6 @@
+-r database/requirements.txt
+mss
+numpy
+opencv-python
+Pillow
+pytesseract

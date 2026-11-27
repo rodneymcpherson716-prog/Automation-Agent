@@ -1,0 +1,984 @@
+
+# ==========================================================
+# WGT GOLF - TIGERWOULD52
+# NINE-HOLE SINGLE PLAYER CONTROLLER
+#
+# YOU open and set up the game.
+# The program NEVER launches WGT or Microsoft Edge.
+#
+# F6: Save accuracy mark under mouse pointer
+# F8: Start continuous round controller
+# F9: Emergency stop
+# CTRL+C: Stop from VS Code terminal
+#
+# Automatic shots are attempted only when:
+# - Tigerwould52 is verified
+# - WGT is the active window
+# - Swing button is recognized
+# - A valid accuracy mark is calibrated
+# - Moving meter is tracked
+#
+# Stops if a shot cannot be verified.
+# ==========================================================
+
+import ctypes
+import ctypes.wintypes
+import json
+import re
+import time
+from pathlib import Path
+
+import cv2
+import mss
+import numpy as np
+import pyautogui
+import pytesseract
+
+
+PLAYER = "Tigerwould52"
+GAME_MODE = "SOLO"
+
+BASE = Path(__file__).resolve().parent
+SWING_IMAGE = BASE / "swing_button.png"
+CALIBRATION = BASE / "wgt_accuracy.json"
+DEBUG = BASE / "wgt_debug"
+
+DEBUG.mkdir(exist_ok=True)
+
+F6 = 0x75
+F8 = 0x77
+F9 = 0x78
+
+MIN_MATCH = 0.85
+MAX_SHOTS = 90
+METER_TIMEOUT = 3.5
+
+BACKSWING_PIXELS = 140
+BACKSWING_SECONDS = 0.80
+
+user32 = ctypes.windll.user32
+
+pyautogui.FAILSAFE = True
+pyautogui.PAUSE = 0
+
+
+def pressed(key):
+    return bool(
+        user32.GetAsyncKeyState(key) & 0x8000
+    )
+
+
+def setup():
+    try:
+        user32.SetProcessDpiAwarenessContext(
+            ctypes.c_void_p(-4)
+        )
+    except Exception:
+        try:
+            user32.SetProcessDPIAware()
+        except Exception:
+            pass
+
+    paths = [
+        Path(
+            r"C:\Program Files\Tesseract-OCR"
+            r"\tesseract.exe"
+        ),
+        Path(
+            r"C:\Program Files (x86)\Tesseract-OCR"
+            r"\tesseract.exe"
+        )
+    ]
+
+    for path in paths:
+        if path.exists():
+            pytesseract.pytesseract.tesseract_cmd = (
+                str(path)
+            )
+            break
+
+
+def find_game():
+    windows = []
+
+    callback_type = ctypes.WINFUNCTYPE(
+        ctypes.c_bool,
+        ctypes.c_void_p,
+        ctypes.c_void_p
+    )
+
+    def callback(hwnd, unused):
+        if not user32.IsWindowVisible(hwnd):
+            return True
+
+        if user32.IsIconic(hwnd):
+            return True
+
+        length = user32.GetWindowTextLengthW(hwnd)
+
+        if length:
+            buf = ctypes.create_unicode_buffer(
+                length + 1
+            )
+
+            user32.GetWindowTextW(
+                hwnd, buf, length + 1
+            )
+
+            if "wgt golf" in buf.value.lower():
+                windows.append(hwnd)
+
+        return True
+
+    user32.EnumWindows(
+        callback_type(callback), 0
+    )
+
+    return windows[0] if windows else None
+
+
+def get_rect(hwnd):
+    r = ctypes.wintypes.RECT()
+
+    if not user32.GetWindowRect(
+        hwnd, ctypes.byref(r)
+    ):
+        return None
+
+    w = r.right - r.left
+    h = r.bottom - r.top
+
+    if w < 600 or h < 400:
+        return None
+
+    return {
+        "left": r.left,
+        "top": r.top,
+        "width": w,
+        "height": h
+    }
+
+
+def safety(hwnd):
+    if pressed(F9):
+        raise KeyboardInterrupt
+
+    if (
+        find_game() != hwnd
+        or user32.GetForegroundWindow() != hwnd
+    ):
+        raise RuntimeError(
+            "WGT lost focus. Controller stopped."
+        )
+
+
+def grab(sct, region):
+    image = np.asarray(sct.grab(region))
+
+    return image[:, :, :3].copy()
+
+
+def crop(frame, x1, y1, x2, y2):
+    h, w = frame.shape[:2]
+
+    return frame[
+        int(h * y1):int(h * y2),
+        int(w * x1):int(w * x2)
+    ]
+
+
+def ocr_text(frame, psm=7, digits=False):
+    if frame.size == 0:
+        return ""
+
+    gray = cv2.cvtColor(
+        frame, cv2.COLOR_BGR2GRAY
+    )
+
+    big = cv2.resize(
+        gray, None,
+        fx=3, fy=3,
+        interpolation=cv2.INTER_CUBIC
+    )
+
+    config = f"--psm {psm}"
+
+    if digits:
+        config += (
+            " -c tessedit_char_whitelist="
+            "0123456789"
+        )
+
+    return pytesseract.image_to_string(
+        big, config=config
+    ).strip()
+
+
+def player_verified(frame):
+    wanted = re.sub(
+        r"[^a-z0-9]", "",
+        PLAYER.lower()
+    )
+
+    regions = [
+        (.72, .02, 1.0, .22),
+        (.65, .02, 1.0, .25)
+    ]
+
+    for region in regions:
+        text = ocr_text(
+            crop(frame, *region),
+            6
+        )
+
+        clean = re.sub(
+            r"[^a-z0-9]", "",
+            text.lower()
+        )
+
+        if wanted in clean:
+            return True
+
+    return False
+
+
+
+def read_hole(frame):
+    h, w = frame.shape[:2]
+    region = frame[
+        int(h * .104):int(h * .141),
+        int(w * .059):int(w * .083)
+    ]
+
+    if region.size == 0:
+        return None
+
+    gray = cv2.cvtColor(region, cv2.COLOR_BGR2GRAY)
+    big = cv2.resize(
+        gray, None, fx=4, fy=4,
+        interpolation=cv2.INTER_CUBIC
+    )
+    _, binary = cv2.threshold(
+        big, 0, 255,
+        cv2.THRESH_BINARY + cv2.THRESH_OTSU
+    )
+
+    for image in (big, binary):
+        text = pytesseract.image_to_string(
+            image,
+            config="--psm 6 -c tessedit_char_whitelist=0123456789"
+        )
+        numbers = re.findall(r"\d{1,2}", text)
+
+        if len(numbers) == 1:
+            value = int(numbers[0])
+            if 1 <= value <= 18:
+                return value
+
+    return None
+
+
+
+def read_shot_number(frame):
+    h, w = frame.shape[:2]
+    region = frame[
+        int(h * .081):int(h * .112),
+        int(w * .889):int(w * .957)
+    ]
+
+    if region.size == 0:
+        return None
+
+    gray = cv2.cvtColor(region, cv2.COLOR_BGR2GRAY)
+    big = cv2.resize(
+        gray, None, fx=4, fy=4,
+        interpolation=cv2.INTER_CUBIC
+    )
+    _, binary = cv2.threshold(
+        big, 0, 255,
+        cv2.THRESH_BINARY + cv2.THRESH_OTSU
+    )
+
+    for image in (big, binary):
+        text = pytesseract.image_to_string(
+            image, config="--psm 6"
+        )
+        clean = re.sub(
+            r"[^A-Z0-9]", "", text.upper()
+        )
+
+        match = re.search(
+            r"(\d{1,2})(?:ST|ND|RD|TH)?SHOT",
+            clean
+        )
+
+        if match:
+            value = int(match.group(1))
+            if 1 <= value <= 30:
+                return value
+
+    return None
+
+
+def round_finished(frame):
+    text = ocr_text(
+        crop(frame, .18, .12, .85, .70),
+        11
+    ).upper()
+
+    return any(
+        phrase in text
+        for phrase in (
+            "ROUND COMPLETE",
+            "FINAL SCORECARD",
+            "ROUND FINISHED"
+        )
+    )
+
+
+def load_template():
+    image = cv2.imread(
+        str(SWING_IMAGE),
+        cv2.IMREAD_GRAYSCALE
+    )
+
+    if image is None:
+        raise RuntimeError(
+            "swing_button.png was not found."
+        )
+
+    return image
+
+
+def find_swing(frame, template, rect):
+    h, w = frame.shape[:2]
+
+    ox = int(w * .55)
+    oy = int(h * .45)
+
+    search = frame[
+        oy:int(h * .92),
+        ox:w
+    ]
+
+    gray = cv2.cvtColor(
+        search, cv2.COLOR_BGR2GRAY
+    )
+
+    best_score = 0
+    best_point = None
+
+    scales = (
+        .65, .75, .85, .95,
+        1.0, 1.05, 1.15,
+        1.25, 1.35
+    )
+
+    for scale in scales:
+        tw = int(template.shape[1] * scale)
+        th = int(template.shape[0] * scale)
+
+        if (
+            tw < 15 or th < 15
+            or tw >= gray.shape[1]
+            or th >= gray.shape[0]
+        ):
+            continue
+
+        resized = cv2.resize(
+            template, (tw, th)
+        )
+
+        result = cv2.matchTemplate(
+            gray, resized,
+            cv2.TM_CCOEFF_NORMED
+        )
+
+        _, score, _, pt = cv2.minMaxLoc(result)
+
+        if score > best_score:
+            best_score = score
+
+            best_point = (
+                rect["left"] + ox + pt[0] + tw // 2,
+                rect["top"] + oy + pt[1] + th // 2
+            )
+
+    return best_score, best_point
+
+
+def meter_rect(rect):
+    w = rect["width"]
+    h = rect["height"]
+
+    return {
+        "left": rect["left"] + int(w * .18),
+        "top": rect["top"] + int(h * .925),
+        "width": int(w * .74),
+        "height": max(30, int(h * .07))
+    }
+
+
+def calibrate(rect):
+    x, y = pyautogui.position()
+
+    meter = meter_rect(rect)
+
+    valid = (
+        meter["left"] <= x
+        <= meter["left"] + meter["width"]
+        and meter["top"] <= y
+        <= meter["top"] + meter["height"]
+    )
+
+    if not valid:
+        print(
+            "Place the mouse on the accuracy mark "
+            "inside the bottom swing meter."
+        )
+        return
+
+    fraction = (
+        (x - rect["left"])
+        / rect["width"]
+    )
+
+    CALIBRATION.write_text(
+        json.dumps({
+            "accuracy_x_fraction": fraction
+        }),
+        encoding="utf-8"
+    )
+
+    print()
+    print("ACCURACY MARK SAVED")
+    print("Screen X:", x)
+    print()
+
+
+def load_calibration():
+    if not CALIBRATION.exists():
+        return None
+
+    try:
+        data = json.loads(
+            CALIBRATION.read_text(
+                encoding="utf-8"
+            )
+        )
+
+        value = float(
+            data["accuracy_x_fraction"]
+        )
+
+        if .18 <= value <= .92:
+            return value
+
+    except Exception:
+        pass
+
+    return None
+
+
+def moving_indicator(previous, current, last_x):
+    a = cv2.cvtColor(
+        previous, cv2.COLOR_BGR2GRAY
+    )
+
+    b = cv2.cvtColor(
+        current, cv2.COLOR_BGR2GRAY
+    )
+
+    difference = cv2.absdiff(a, b)
+
+    h, w = difference.shape
+
+    top = max(2, int(h * .15))
+    bottom = min(h, int(h * .85))
+
+    mask = (
+        difference[top:bottom, :] > 35
+    )
+
+    strength = mask.sum(
+        axis=0
+    ).astype(float)
+
+    strength = np.convolve(
+        strength,
+        np.ones(5) / 5,
+        mode="same"
+    )
+
+    candidates = np.flatnonzero(
+        strength > max(
+            3, (bottom - top) * .18
+        )
+    )
+
+    candidates = candidates[
+        (candidates > 5)
+        & (candidates < w - 5)
+    ]
+
+    if not len(candidates):
+        return None
+
+    if last_x is not None:
+        near = candidates[
+            abs(candidates - last_x) < 65
+        ]
+
+        if len(near):
+            candidates = near
+
+    return int(
+        candidates[
+            np.argmax(strength[candidates])
+        ]
+    )
+
+
+def track_and_click(hwnd, rect, sct, point):
+    meter = meter_rect(rect)
+
+    fraction = load_calibration()
+
+    if fraction is None:
+        raise RuntimeError(
+            "Accuracy mark not calibrated. "
+            "Use F6 before starting."
+        )
+
+    target_x = (
+        rect["left"]
+        + round(rect["width"] * fraction)
+        - meter["left"]
+    )
+
+    start = time.perf_counter()
+
+    previous = grab(sct, meter)
+    last_x = None
+    history = []
+
+    seen_right = False
+
+    while (
+        time.perf_counter() - start
+        < METER_TIMEOUT
+    ):
+        safety(hwnd)
+
+        current = grab(sct, meter)
+
+        x = moving_indicator(
+            previous,
+            current,
+            last_x
+        )
+
+        previous = current
+
+        if x is not None:
+            history.append(
+                (time.perf_counter(), x)
+            )
+
+            history = history[-5:]
+            last_x = x
+
+            if x > target_x + 35:
+                seen_right = True
+
+            if seen_right and len(history) >= 3:
+                a, b, c = history[-3:]
+
+                returning = (
+                    a[1] > b[1] > c[1]
+                    and a[1] - c[1] >= 5
+                )
+
+                if returning:
+                    dt = max(
+                        .001, c[0] - a[0]
+                    )
+
+                    speed = (
+                        a[1] - c[1]
+                    ) / dt
+
+                    lead = max(
+                        6,
+                        min(25, int(speed * .018))
+                    )
+
+                    if (
+                        target_x - 5
+                        <= c[1]
+                        <= target_x + lead
+                    ):
+                        safety(hwnd)
+
+                        pyautogui.click(*point)
+
+                        print(
+                            "ACCURACY CLICK",
+                            "Marker:", c[1],
+                            "Target:", target_x
+                        )
+
+                        return True
+
+        time.sleep(.005)
+
+    print(
+        "Accuracy movement not confirmed."
+    )
+
+    return False
+
+
+def attempt_shot(hwnd, rect, sct, template):
+    safety(hwnd)
+
+    frame = grab(sct, rect)
+
+    if not player_verified(frame):
+        print("Tigerwould52 not verified.")
+        return False
+
+    current_hole = read_hole(frame)
+    current_shot = read_shot_number(frame)
+
+    if current_hole is None or current_shot is None:
+        print(
+            "Could not verify hole or shot number."
+        )
+        return False
+
+    detections = []
+
+    for _ in range(3):
+        safety(hwnd)
+
+        detections.append(
+            find_swing(
+                grab(sct, rect),
+                template,
+                rect
+            )
+        )
+
+        time.sleep(.08)
+
+    score, point = detections[-1]
+
+    if (
+        point is None
+        or min(x[0] for x in detections)
+        < MIN_MATCH
+    ):
+        print("Swing button not confirmed.")
+        return False
+
+    print()
+    print(
+        f"HOLE {current_hole} "
+        f"- SHOT {current_shot}"
+    )
+    print(
+        "Swing match:",
+        round(score, 3)
+    )
+
+    print("Starting swing...")
+
+    pyautogui.moveTo(
+        *point, duration=.10
+    )
+
+    try:
+        pyautogui.mouseDown()
+
+        safety(hwnd)
+
+        pyautogui.moveRel(
+            0,
+            -BACKSWING_PIXELS,
+            duration=BACKSWING_SECONDS
+        )
+
+    finally:
+        pyautogui.mouseUp()
+
+    clicked = track_and_click(
+        hwnd,
+        rect,
+        sct,
+        point
+    )
+
+    if not clicked:
+        print(
+            "No verified accuracy click."
+        )
+        return False
+
+    # Confirm that WGT advanced to a new shot
+    # or a different hole before continuing.
+    deadline = time.monotonic() + 15
+
+    while time.monotonic() < deadline:
+        safety(hwnd)
+
+        time.sleep(.7)
+
+        frame = grab(sct, rect)
+
+        if round_finished(frame):
+            print("ROUND COMPLETE detected.")
+            return True
+
+        new_hole = read_hole(frame)
+        new_shot = read_shot_number(frame)
+
+        if (
+            new_hole is not None
+            and new_hole != current_hole
+        ):
+            print(
+                "Advanced to hole",
+                new_hole
+            )
+            return True
+
+        if (
+            new_shot is not None
+            and new_shot > current_shot
+        ):
+            print(
+                "Advanced to shot",
+                new_shot
+            )
+            return True
+
+    print(
+        "Shot result not verified."
+    )
+    return False
+
+
+def run_round(hwnd, sct, template):
+    starting_hole = None
+    seen_holes = set()
+
+    for shot_attempt in range(
+        1, MAX_SHOTS + 1
+    ):
+        safety(hwnd)
+
+        rect = get_rect(hwnd)
+
+        if rect is None:
+            print("Game window unavailable.")
+            return
+
+        frame = grab(sct, rect)
+
+        if round_finished(frame):
+            print("ROUND FINISHED")
+            return
+
+        hole = read_hole(frame)
+
+        if hole is not None:
+            if starting_hole is None:
+                starting_hole = hole
+
+            seen_holes.add(hole)
+
+            if hole >= starting_hole + 9:
+                print("Nine-hole range completed.")
+                return
+
+        score, point = find_swing(
+            frame, template, rect
+        )
+
+        if (
+            point is None
+            or score < MIN_MATCH
+        ):
+            # Between shots, allow the game to
+            # animate without repeatedly clicking.
+            deadline = time.monotonic() + 25
+
+            while time.monotonic() < deadline:
+                safety(hwnd)
+                time.sleep(.8)
+
+                frame = grab(sct, rect)
+
+                if round_finished(frame):
+                    print("ROUND FINISHED")
+                    return
+
+                score, point = find_swing(
+                    frame, template, rect
+                )
+
+                if (
+                    point is not None
+                    and score >= MIN_MATCH
+                ):
+                    break
+
+            else:
+                print(
+                    "No ready swing detected."
+                )
+                print(
+                    "Controller paused safely."
+                )
+                return
+
+        print()
+        print(
+            "Automatic shot attempt:",
+            shot_attempt
+        )
+
+        success = attempt_shot(
+            hwnd,
+            rect,
+            sct,
+            template
+        )
+
+        if not success:
+            print()
+            print(
+                "Cannot verify successful shot."
+            )
+            print(
+                "Stopping to prevent "
+                "repeated misses."
+            )
+            return
+
+        # Allow time for the next shot
+        # or hole transition.
+        time.sleep(2)
+
+    print(
+        "Maximum shot limit reached."
+    )
+
+
+def main():
+    setup()
+
+    try:
+        pytesseract.get_tesseract_version()
+    except Exception:
+        print("Tesseract OCR unavailable.")
+        return
+
+    template = load_template()
+
+    print("=" * 52)
+    print("WGT - TIGERWOULD52")
+    print("NINE-HOLE SINGLE PLAYER CONTROLLER")
+    print("=" * 52)
+
+    print("Game launching: DISABLED")
+    print("Game mode: SOLO")
+    print("Continuous shots: ENABLED")
+    print("Shot verification: REQUIRED")
+    print()
+    print("F6 = Calibrate accuracy mark")
+    print("F8 = Start controller")
+    print("F9 = Emergency stop")
+    print("CTRL+C = Stop")
+    print()
+
+    old_f6 = False
+    old_f8 = False
+
+    try:
+        factory = getattr(mss, "MSS", None)
+
+        if factory is None:
+            factory = mss.mss
+
+        with factory() as sct:
+            while True:
+                if pressed(F9):
+                    print("Stopped by F9.")
+                    return
+
+                hwnd = find_game()
+
+                focused = (
+                    hwnd is not None
+                    and user32.GetForegroundWindow()
+                    == hwnd
+                )
+
+                f6 = pressed(F6)
+                f8 = pressed(F8)
+
+                if focused and f6 and not old_f6:
+                    rect = get_rect(hwnd)
+
+                    if rect:
+                        calibrate(rect)
+
+                if focused and f8 and not old_f8:
+                    if load_calibration() is None:
+                        print(
+                            "Calibrate accuracy mark "
+                            "with F6 first."
+                        )
+                    else:
+                        print()
+                        print(
+                            "STARTING NINE-HOLE "
+                            "CONTROLLER"
+                        )
+
+                        run_round(
+                            hwnd, sct, template
+                        )
+
+                        return
+
+                old_f6 = (
+                    f6 if focused else False
+                )
+
+                old_f8 = (
+                    f8 if focused else False
+                )
+
+                time.sleep(.06)
+
+    except (
+        KeyboardInterrupt,
+        pyautogui.FailSafeException
+    ):
+        print("Emergency stop activated.")
+
+    except Exception as error:
+        print("Stopped:", error)
+
+    finally:
+        pyautogui.mouseUp()
+        print("WGT CONTROLLER CLOSED")
+
+
+if __name__ == "__main__":
+    main()
+
+
