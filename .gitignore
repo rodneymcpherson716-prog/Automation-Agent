@@ -11,3 +11,4 @@ automation_debug/
 /rename_report.txt
 
 *.log
+/archive/
