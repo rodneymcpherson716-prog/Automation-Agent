@@ -8,7 +8,7 @@ from automation_core import meter_rect
 from vision_engine import PowerCalibration
 
 ROOT=Path(r'Automation-Agent project root')
-RUN=ROOT/'wgt_debug/runs/20261112_015125_4dcc7340'
+RUN=ROOT/'automation_debug/runs/20261112_015125_4dcc7340'
 RECT=dict(left=37,top=46,width=1288,height=728)
 
 class ClubHoverTests(unittest.TestCase):

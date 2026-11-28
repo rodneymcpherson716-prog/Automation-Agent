@@ -345,7 +345,7 @@ class ImportAndSafetyTests(unittest.TestCase):
     def test_session_sync_is_read_only_idempotent_and_matches_live_shot_ids(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
-            run = root/'wgt_debug/runs/fixture-session'
+            run = root/'automation_debug/runs/fixture-session'
             run.mkdir(parents=True)
             s = state()
             payload = dict(before=s, after=result(s), observed_power=.5)

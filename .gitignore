@@ -6,6 +6,8 @@ __pycache__/
 venv/
 .venv/
 
-wgt_debug/
+automation_debug/
+/archive/**/wgt_debug/
+/rename_report.txt
 
 *.log

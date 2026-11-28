@@ -1,119 +1,83 @@
 # Automation Agent
 
-## Overview
+Automation Agent is a Python-based automation project focused on computer vision, workflow automation, state detection, and reliable interaction with a graphical desktop application.
 
-Automation Agent is a Python portfolio project demonstrating automated workflow orchestration, computer vision, context-aware decision making, telemetry, and learning-oriented system design.
+The project demonstrates how an automation system can observe changing screen conditions, interpret application state, make decisions, and execute controlled actions while maintaining safety checks and testable behavior.
 
-The project explores how an automation system can observe a changing environment, evaluate available context, make constrained decisions, execute a workflow, and collect diagnostics without allowing uncertain observations to trigger unsafe actions. Its modules include a vision pipeline, state coordinator, decision engine, shadow-learning system, shot-capture audit, persistent storage, and offline regression suite.
+## Key Features
 
-This repository is best viewed as an architecture and testing demonstration rather than a hosted service or general-purpose automation framework.
+- Python-based automation architecture
+- Computer vision and screen-state detection
+- Multi-step workflow automation
+- Application and window recognition
+- Context-aware decision logic
+- Multi-monitor support
+- Automated input and action sequencing
+- State and transition handling
+- Debug and diagnostic logging
+- Offline regression testing
+- Emergency-stop and safety controls
+- Structured configuration and calibration data
 
-## Features
+## Engineering Approach
 
-- **Computer vision:** Captures and analyzes visual regions with OpenCV, MSS, NumPy, and Tesseract OCR.
-- **Context-aware execution:** Combines multiple observations before allowing a workflow transition or action.
-- **Decision engines:** Separates detection, planning, verification, and execution responsibilities.
-- **Fail-closed behavior:** Rejects ambiguous, stale, or unverified state instead of guessing.
-- **Workflow orchestration:** Coordinates setup, observation, timing, action, verification, and completion phases.
-- **Telemetry and diagnostics:** Records structured run data, captures, verification evidence, and outcome summaries.
-- **Shadow learning:** Evaluates calibration and learning models without silently enabling recommendations.
-- **Persistent shot records:** Stores verified capture and shot metadata using SQLite.
-- **Offline regression testing:** Tests can block real screen capture and native input at the boundary.
+The project was developed as a modular automation system rather than a single script.
 
-## Architecture
+Different components handle responsibilities such as screen observation, application-state detection, decision making, action execution, calibration, learning data, and testing. This separation makes the project easier to troubleshoot, test, maintain, and improve.
 
-The repository is organized around independent layers:
+The automation also accounts for changing application conditions instead of relying entirely on fixed coordinates or static assumptions. This allows the system to make decisions based on information detected from the current screen state.
 
-| Module | Responsibility |
-|---|---|
-| `execution_engine.py` | Coordinates the main workflow and enforces live execution boundaries |
-| `automation_core.py` | Provides shared tracking, planning, parsing, and accuracy helpers |
-| `vision_engine.py` | Performs screen analysis and OCR-based observations |
-| `context_manager.py` | Maintains state, locks, and transition policy |
-| `game_state.py` | Defines policy and evidence-based state decisions |
-| `terrain_handler.py` | Handles terrain-specific classifications and calibration planning |
-| `round_manager.py` | Coordinates multi-step workflow sequencing |
-| `automation_learning.py` | Implements shadow evaluation and persistent learning artifacts |
-| `learning_data.py` | Normalizes observations and derives learning features |
-| `shot_capture.py` | Builds audited shot-capture records |
-| `shot_store.py` | Stores and imports verified captures in SQLite |
-| `manual_terrain_recorder.py` | Provides read-only calibration capture tooling |
-| `run_offline_tests.py` | Runs regressions while blocking native input and real capture |
+## Reliability and Testing
 
-The intended data flow is:
+Reliability was an important part of development.
 
-```text
-Screen Capture
-      |
-      v
-Computer Vision / OCR
-      |
-      v
-Context and State Validation
-      |
-      v
-Decision Engine
-      |
-      v
-Verified Workflow Execution
-      |
-      v
-Telemetry, Audit, and Learning
-```
+The project includes regression tests and offline validation to help identify problems before live execution. Recent migration validation included Python compilation checks, structured-data validation, database integrity checking, and focused automated tests.
+
+Safety controls are also built into the workflow to prevent unintended actions and provide a way to stop automation when necessary.
+
+## Project Migration
+
+The repository was recently reorganized under the **Automation Agent** name to provide a cleaner, more professional project structure.
+
+The migration included:
+
+- Source-file and documentation renaming
+- Reference and dependency updates
+- Configuration and data-file migration
+- Test updates
+- Repository cleanup
+- Validation of Python and structured-data files
+- Regression testing after migration
+
+Application-specific runtime identifiers required for correct detection and compatibility are intentionally preserved inside the implementation where necessary.
 
 ## Technologies
 
 - Python
-- OpenCV
-- NumPy
-- MSS
-- Pillow
-- Tesseract OCR
+- Computer Vision
+- Desktop Automation
+- Workflow Automation
+- Git and GitHub
+- JSON / structured configuration
 - SQLite
-- Python `unittest`
-- Windows-native APIs for environment-specific live execution
+- Automated Testing
 
-## Installation
+## What This Project Demonstrates
 
-Python 3.11 or newer is recommended.
+This project highlights practical experience with:
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install mss numpy opencv-python Pillow pytesseract
-```
+- Automation engineering
+- Python development
+- Computer vision concepts
+- Debugging complex workflows
+- State-machine and decision logic
+- Test-driven troubleshooting
+- Git version control
+- Repository migration and refactoring
+- Maintaining compatibility during large codebase changes
 
-On Linux or macOS, image-capture and Windows-input portions of the project may not be available. These components are environment-specific and are not required for the architectural review.
+## Author
 
-For Tesseract OCR, install the OCR executable separately and ensure it is available on the system `PATH`.
+**James McPherson**
 
-To run a focused offline test module:
-
-```powershell
-python -B run_offline_tests.py test_automation
-```
-
-To discover and run the repository's offline test suite:
-
-```powershell
-python -B run_offline_tests.py
-```
-
-The offline runner blocks MSS capture and native input attempts so that tests do not drive a real application or send real mouse or keyboard commands.
-
-## Current Status
-
-This repository includes a substantial offline test suite, core workflow modules, SQLite capture storage, computer-vision utilities, telemetry structures, and shadow-learning logic.
-
-Environment-specific packages and assets have been omitted. A few package imports, calibration assets, and live integration components therefore may not be present in a fresh checkout. The repository demonstrates the system design and test conventions even when those external components are unavailable.
-
-Before expanding a public copy for another environment, reviewers should restore or replace missing package imports and provide mock or fixture data for visual and calibration tests.
-
-## Portfolio Disclaimer
-
-This project is a portfolio demonstration of Python automation, computer vision, workflow design, and defensive execution boundaries. It is not presented as a production-ready application or as a supported integration with any third-party application.
-
-Some implementation details, visual assets, calibration files, recorded environments, and machine-specific integrations are intentionally omitted. Live capture and native input should not be assumed to work outside the original Windows environment.
-
-The project is designed to demonstrate architectural decisions and testable behavior, not to provide a turnkey automation service.
+Cybersecurity and technology professional with an interest in automation, systems engineering, infrastructure, and security-focused software development.

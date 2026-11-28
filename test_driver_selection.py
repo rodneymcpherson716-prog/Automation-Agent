@@ -8,7 +8,7 @@ from vision_engine import PowerCalibration
 
 FIXTURE=Path(__file__).with_name('driver_selection_fixture.json')
 if not FIXTURE.is_file():
-    FIXTURE=Path(r'Automation-Agent project root\wgt_debug\driver_selection_fixture_20261110.json')
+    FIXTURE=Path(r'Automation-Agent project root\automation_debug\driver_selection_fixture_20261110.json')
 
 class DriverSelectionTests(unittest.TestCase):
     def test_actual_282_yard_driver_is_usable_without_wheel_input(self):

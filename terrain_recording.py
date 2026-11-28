@@ -194,7 +194,7 @@ class ManualBunkerStore:
                 raise ValueError('Capture is stale, future-dated or missing its time')
             evidence = snapshot.get('evidence') or {}
             path = (self.root / evidence.get('path', '')).resolve()
-            allowed = self.root/'wgt_debug/manual_bunker'
+            allowed = self.root/'automation_debug/manual_bunker'
             if (not path.is_relative_to(allowed) or not path.is_file()
                     or hashlib.sha256(path.read_bytes()).hexdigest() != evidence.get('sha256')):
                 raise ValueError('Capture evidence missing, changed or outside the manual evidence folder')

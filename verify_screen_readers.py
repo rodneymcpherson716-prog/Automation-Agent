@@ -20,7 +20,7 @@ def main():
                'approach':'approach_detection_fixture_20261110.png',
                'occluded_pitch':'pitch_detection_fixture_20261110.png'}
         for name,filename in cases.items():
-            path=root/'wgt_debug'/filename
+            path=root/'automation_debug'/filename
             frame=cv2.imread(str(path))
             if frame is None:
                 raise RuntimeError('Missing saved MSS fixture: '+str(path))

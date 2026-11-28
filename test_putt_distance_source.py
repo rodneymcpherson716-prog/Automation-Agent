@@ -133,7 +133,7 @@ class RealDisplayTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         live.setup()
-        cls.frame=cv2.imread(str(ROOT/'wgt_debug/runs/20261117_220207_51c60201/ready_wait_10.png'))
+        cls.frame=cv2.imread(str(ROOT/'automation_debug/runs/20261117_220207_51c60201/ready_wait_10.png'))
 
     def test_real_14_point_6_marker_and_15_hud_are_distinct_sources(self):
         with patch.object(live,'GAME',None),patch.object(live,'send') as send:

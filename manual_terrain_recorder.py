@@ -58,7 +58,7 @@ def capture_pair(root, phase, countdown=8):
     if phase not in ('before', 'after'):
         raise ValueError('Unknown recording phase')
     live.setup()  # Existing DPI/signature/Tesseract setup; does not send input.
-    folder = Path(root)/'wgt_debug/manual_bunker'/uuid.uuid4().hex
+    folder = Path(root)/'automation_debug/manual_bunker'/uuid.uuid4().hex
     folder.mkdir(parents=True)
     with read_only_native(live):
         print(f'{phase.upper()}: switch to your already-open WGT window; keep the HUD and Shot Stats visible.', flush=True)
@@ -125,7 +125,7 @@ def main(argv=None):
         print('Manual bunker recorder imports OK. No capture or input. Automatic bunker swings remain blocked.')
         return 0
     store = ManualBunkerStore(ROOT)
-    lock = ControllerLock(ROOT/'wgt_debug/live_controller.lock')
+    lock = ControllerLock(ROOT/'automation_debug/live_controller.lock')
     try:
         lock.acquire()  # Also prevents a nine-hole controller starting alongside this recorder.
         print('READ-ONLY MANUAL BUNKER RECORDER. Use SOLO play only. No automation will run.')

@@ -416,7 +416,7 @@ class ShadowLearning:
     def sync_existing(self):
         """Read existing session/manual files. No screenshots or game access."""
         added, issues = 0, []
-        for path in sorted((self.root/'wgt_debug/runs').glob('*/*shot_*_result.json')):
+        for path in sorted((self.root/'automation_debug/runs').glob('*/*shot_*_result.json')):
             match = re.fullmatch(r'(?:(hole_\d+_))?shot_(\d+)_result\.json', path.name)
             if not match:
                 continue

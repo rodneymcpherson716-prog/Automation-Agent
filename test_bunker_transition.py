@@ -10,7 +10,7 @@ from vision_engine import PowerCalibration
 PROJECT=Path(r'Automation-Agent project root')
 FIXTURE=Path(__file__).with_name('bunker.png')
 if not FIXTURE.is_file():
-    FIXTURE=PROJECT/'wgt_debug/bunker_transition_fixture_20261110.png'
+    FIXTURE=PROJECT/'automation_debug/bunker_transition_fixture_20261110.png'
 
 class BunkerTransitionTests(unittest.TestCase):
     @classmethod
@@ -32,7 +32,7 @@ class BunkerTransitionTests(unittest.TestCase):
         send.assert_not_called()
 
     def test_replay_logged_third_shot_timeout_recovers_ready_fourth_shot(self):
-        run=PROJECT/'wgt_debug/runs/20261110_142623_d97cc5cd'
+        run=PROJECT/'automation_debug/runs/20261110_142623_d97cc5cd'
         paths=sorted(run.glob('post_shot_read_*.png'))[-2:]
         self.assertEqual(len(paths),2)
         frames=[cv2.imread(str(path)) for path in paths]

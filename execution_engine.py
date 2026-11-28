@@ -45,7 +45,7 @@ from vision.ball_spin import read_ball_spin
 from agent.shot_pipeline import ShotTiming, build_plan, execute_stroke
 
 ROOT = Path(__file__).resolve().parent
-DEBUG = ROOT/'wgt_debug'
+DEBUG = ROOT/'automation_debug'
 RECORD = ROOT/'wgt_calibration/last_manual_stroke.json'
 CALIBRATION = ROOT/'automation_accuracy.json'
 SWING_TEMPLATE = ROOT/'swing_button.png'
@@ -1395,7 +1395,7 @@ def stable_state(safety, sct, rect, timeout=30.0, expected=None):
         cv2.imwrite(str(DEBUG/'next_shot_not_ready.png'), last_frame)
     raise RuntimeError('Next shot could not be verified within '
                        f'{timeout:g}s; missing: {", ".join(last_problems) or "two matching frames"}. '
-                       'Saved wgt_debug/next_shot_not_ready.png; no new swing')
+                       'Saved automation_debug/next_shot_not_ready.png; no new swing')
 
 
 def park_on_meter(safety, rect):

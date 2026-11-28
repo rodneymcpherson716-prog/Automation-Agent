@@ -10,7 +10,7 @@ PROJECT=Path(r'Automation-Agent project root')
 class IronReadingTests(unittest.TestCase):
     def test_actual_nine_iron_range_is_verified_during_tee_club_selection(self):
         live.setup()
-        f=cv2.imread(str(PROJECT/'wgt_debug/nine_iron_fixture_20261111.png'))
+        f=cv2.imread(str(PROJECT/'automation_debug/nine_iron_fixture_20261111.png'))
         self.assertIsNotNone(f)
         h,w=f.shape[:2]
         rect=dict(left=37,top=46,width=w,height=h)
@@ -30,7 +30,7 @@ class IronReadingTests(unittest.TestCase):
         live.setup()
         path=Path(__file__).with_name('iron_tee.png')
         if not path.is_file():
-            path=PROJECT/'wgt_debug/iron_tee_fixture_20261110.png'
+            path=PROJECT/'automation_debug/iron_tee_fixture_20261110.png'
         f=cv2.imread(str(path))
         self.assertIsNotNone(f)
         h,w=f.shape[:2]
@@ -50,7 +50,7 @@ class IronReadingTests(unittest.TestCase):
         live.setup()
         path=Path(__file__).with_name('seven_iron.png')
         if not path.is_file():
-            path=PROJECT/'wgt_debug/seven_iron_fixture_20261110.png'
+            path=PROJECT/'automation_debug/seven_iron_fixture_20261110.png'
         f=cv2.imread(str(path))
         self.assertIsNotNone(f)
         h,w=f.shape[:2]

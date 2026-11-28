@@ -16,13 +16,13 @@ from automation_core import detect_meter, meter_rect, yellow_power, green_front
 FIXTURES=Path(r'Automation-Agent project root')
 LIVE_FIXTURE=Path(__file__).with_name('live_detection_fixture.png')
 if not LIVE_FIXTURE.is_file():
-    LIVE_FIXTURE=FIXTURES/'wgt_debug/detection_fixture_20261110.png'
+    LIVE_FIXTURE=FIXTURES/'automation_debug/detection_fixture_20261110.png'
 APPROACH_FIXTURE=Path(__file__).with_name('approach_detection_fixture.png')
 if not APPROACH_FIXTURE.is_file():
-    APPROACH_FIXTURE=FIXTURES/'wgt_debug/approach_detection_fixture_20261110.png'
+    APPROACH_FIXTURE=FIXTURES/'automation_debug/approach_detection_fixture_20261110.png'
 PITCH_FIXTURE=Path(__file__).with_name('pitch_detection_fixture.png')
 if not PITCH_FIXTURE.is_file():
-    PITCH_FIXTURE=FIXTURES/'wgt_debug/pitch_detection_fixture_20261110.png'
+    PITCH_FIXTURE=FIXTURES/'automation_debug/pitch_detection_fixture_20261110.png'
 
 
 class CurrentScreenTests(unittest.TestCase):
@@ -51,7 +51,7 @@ class CurrentScreenTests(unittest.TestCase):
             s=obs.Session(folder)
             expected=str(s.path)
             s.close('detection_probe_only',path='duplicate metadata path',input_sent=False)
-            result=json.loads((Path(folder)/'wgt_debug/latest_run.json').read_text())
+            result=json.loads((Path(folder)/'automation_debug/latest_run.json').read_text())
             self.assertEqual(result['path'],expected)
             self.assertEqual(result['status'],'detection_probe_only')
 
@@ -82,7 +82,7 @@ class CurrentScreenTests(unittest.TestCase):
         send.assert_not_called()
 
     def test_club_like_neutral_digit_does_not_shift_gauge_outline(self):
-        from test_wgt import band
+        from test_automation import band
         image=band()
         cv2.line(image,(40,3),(40,35),(200,200,200),3)
         meter=detect_meter(image)
@@ -90,7 +90,7 @@ class CurrentScreenTests(unittest.TestCase):
         self.assertEqual(meter.origin,70)
 
     def test_missing_outline_abstains_despite_text_and_blue_zone(self):
-        from test_wgt import band
+        from test_automation import band
         image=band()
         # Erase the horizontal boundaries and leave the blue target/ticks.
         image[5,:]=0
@@ -112,7 +112,7 @@ class CurrentScreenTests(unittest.TestCase):
         self.assertTrue(reading['verified'],reading)
 
     def test_second_shot_badge_recovers_56_yards_from_leading_zero_ocr(self):
-        saved=FIXTURES/'wgt_debug/runs/20261122_035206_b02b5cf1/stopped_frame.png'
+        saved=FIXTURES/'automation_debug/runs/20261122_035206_b02b5cf1/stopped_frame.png'
         frame=cv2.imread(str(saved))
         self.assertIsNotNone(frame)
         sign=(573,42,107,80)  # Coordinates from the live misread.
@@ -121,7 +121,7 @@ class CurrentScreenTests(unittest.TestCase):
             self.assertIsNone(live.read_sign_distance(frame,sign))
 
     def test_second_shot_badge_above_previous_search_boundary(self):
-        saved=FIXTURES/'wgt_debug/runs/20261122_035806_aeadfc97/detection_read_1.png'
+        saved=FIXTURES/'automation_debug/runs/20261122_035806_aeadfc97/detection_read_1.png'
         frame=cv2.imread(str(saved))
         self.assertIsNotNone(frame)
         sign=live.find_distance_sign(frame)
@@ -129,7 +129,7 @@ class CurrentScreenTests(unittest.TestCase):
         self.assertEqual(live.read_sign_distance(frame,sign),live.Distance(56.,'yd'))
 
     def test_pitch_badge_keeps_both_narrow_digits(self):
-        run=FIXTURES/'wgt_debug/runs/20261122_220123_73ad5459'
+        run=FIXTURES/'automation_debug/runs/20261122_220123_73ad5459'
         for name in ('hole_01_ready_wait_1.png','hole_01_stopped_frame.png'):
             with self.subTest(name=name):
                 frame=cv2.imread(str(run/name))
@@ -177,7 +177,7 @@ class ConditionTests(unittest.TestCase):
         self.assertIsNone(obs.parse_wind('11 13'))
 
     def test_saved_tee_conditions(self):
-        frame=cv2.imread(str(FIXTURES/'wgt_debug/v48_before_shot_1.png'))
+        frame=cv2.imread(str(FIXTURES/'automation_debug/v48_before_shot_1.png'))
         state=obs.read_conditions(frame,live.find_distance_sign(frame),live.ocr_variants,live.crop)
         self.assertEqual(state['elevation_ft'],-10,state)
         self.assertIsNotNone(state['wind'],state)
@@ -187,7 +187,7 @@ class ConditionTests(unittest.TestCase):
         self.assertEqual(state['green_speed'],10,state)
 
     def test_saved_putt_conditions(self):
-        frame=cv2.imread(str(FIXTURES/'wgt_debug/v47_before_shot_1.png'))
+        frame=cv2.imread(str(FIXTURES/'automation_debug/v47_before_shot_1.png'))
         state=obs.read_conditions(frame,live.find_distance_sign(frame),live.ocr_variants,live.crop)
         self.assertIsNotNone(state['elevation_ft'],state)
         self.assertAlmostEqual(state['elevation_ft'],-.05,msg=str(state))
@@ -195,7 +195,7 @@ class ConditionTests(unittest.TestCase):
         self.assertEqual(state['green_speed'],10,state)
 
     def test_second_shot_elevation_requires_visible_ft_glyph(self):
-        run=FIXTURES/'wgt_debug/runs/20261118_151019_e9af04a8'
+        run=FIXTURES/'automation_debug/runs/20261118_151019_e9af04a8'
         for name in ('hole_01_ready_wait_52.png','hole_01_ready_wait_99.png'):
             with self.subTest(frame=name):
                 frame=cv2.imread(str(run/name))
@@ -211,7 +211,7 @@ class ConditionTests(unittest.TestCase):
         self.assertIsNone(state['elevation_ft'],state)
 
     def test_live_hud_telemetry_keeps_ocr_and_parsed_measurements_together(self):
-        frame=cv2.imread(str(FIXTURES/'wgt_debug/runs/20261118_151019_e9af04a8/hole_01_ready_wait_99.png'))
+        frame=cv2.imread(str(FIXTURES/'automation_debug/runs/20261118_151019_e9af04a8/hole_01_ready_wait_99.png'))
         self.assertIsNotNone(frame)
         with tempfile.TemporaryDirectory() as folder:
             session=obs.Session(folder)
@@ -238,7 +238,7 @@ class ConditionTests(unittest.TestCase):
                 self.assertEqual(payload['timestamp'],event['timestamp'])
 
     def test_dim_tee_badge_reads_from_lower_edge_and_requires_visible_badge(self):
-        run=FIXTURES/'wgt_debug/runs/20261120_060836_41a532b5'
+        run=FIXTURES/'automation_debug/runs/20261120_060836_41a532b5'
         for name in ('hole_01_ready_wait_1.png','hole_01_ready_wait_62.png'):
             with self.subTest(frame=name):
                 frame=cv2.imread(str(run/name))
@@ -362,7 +362,7 @@ class EvidenceTests(unittest.TestCase):
             self.assertNotEqual(first.path,second.path)
             first.close('stopped_unverified',reason='test')
             second.close('observed_only',input_sent=False)
-            result=json.loads((Path(folder)/'wgt_debug/latest_run.json').read_text())
+            result=json.loads((Path(folder)/'automation_debug/latest_run.json').read_text())
             self.assertEqual(result['status'],'observed_only')
             self.assertFalse(result['input_sent'])
 
@@ -376,7 +376,7 @@ class EvidenceTests(unittest.TestCase):
                 patch.object(live,'capture',side_effect=OSError('MSS capture failed')), \
                 patch.object(live,'send') as send,redirect_stdout(io.StringIO()):
             self.assertEqual(live.main(['--observe']),1)
-            result=json.loads((Path(folder)/'wgt_debug/latest_run.json').read_text())
+            result=json.loads((Path(folder)/'automation_debug/latest_run.json').read_text())
             self.assertEqual(result['status'],'stopped_unverified')
             self.assertIn('MSS capture failed',result['reason'])
             send.assert_not_called()

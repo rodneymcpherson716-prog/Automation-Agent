@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parent
 
 
 def snapshot(root, token, stamp, shot=4, stats=None, **state_changes):
-    path = Path(root)/'wgt_debug/manual_bunker/synthetic'/f'{token}.png'
+    path = Path(root)/'automation_debug/manual_bunker/synthetic'/f'{token}.png'
     path.parent.mkdir(parents=True, exist_ok=True)
     cv2.imwrite(str(path), np.zeros((8, 8, 3), np.uint8))  # Synthetic evidence, never a WGT measurement.
     state = dict(player=True, hole=10, shot=shot, mode='FULL', distance=16., unit='yd',
@@ -332,7 +332,7 @@ class ManualStatsTests(unittest.TestCase):
         live.setup()
         for name, expected in (('bunker_transition_fixture_20261110.png', (126.22, 7.87, 87)),
                                ('pitch_eleven_fixture_20261110.png', (.83, 0., 26))):
-            frame = cv2.imread(str(ROOT/'wgt_debug'/name))
+            frame = cv2.imread(str(ROOT/'automation_debug'/name))
             self.assertIsNotNone(frame)
             result = read_manual_stats_patch(live.crop(frame, (955/1257, 115/718, 1160/1257, 236/718)), live.ocr_variants)
             self.assertEqual(tuple(result['values'][key] for key in ('carry_yd', 'roll_yd', 'power_percent')), expected, result)
@@ -341,7 +341,7 @@ class ManualStatsTests(unittest.TestCase):
 class ManualRecorderBoundaryTests(unittest.TestCase):
     def test_actual_saved_before_frame_passes_capture_reader_and_storage_path_without_input(self):
         live.setup()
-        frame = cv2.imread(str(ROOT/'wgt_debug/bunker_transition_fixture_20261110.png'))
+        frame = cv2.imread(str(ROOT/'automation_debug/bunker_transition_fixture_20261110.png'))
         rect = dict(left=29, top=48, width=frame.shape[1], height=frame.shape[0])
         with tempfile.TemporaryDirectory() as folder, patch.object(live, 'setup'), \
                 patch.object(live, 'GAME', None), patch.object(live, 'user32') as native, \
@@ -352,7 +352,7 @@ class ManualRecorderBoundaryTests(unittest.TestCase):
             native.GetForegroundWindow.return_value = 10
             native.IsIconic.return_value = False
             pair = cli.capture_pair(Path(folder), 'before', countdown=0)
-            self.assertEqual(len(list((Path(folder)/'wgt_debug/manual_bunker').glob('*/capture.json'))), 1)
+            self.assertEqual(len(list((Path(folder)/'automation_debug/manual_bunker').glob('*/capture.json'))), 1)
             pending = ManualBunkerStore(folder).stage(pair, solo_confirmed=True)
         self.assertEqual(capture.call_count, 2)
         self.assertEqual(pending['before_fields']['club'], 'LW')
@@ -485,7 +485,7 @@ class ManualRecorderBoundaryTests(unittest.TestCase):
                 match = re.fullmatch(r'(\d{8}_\d{6}_[a-f0-9]{8}):(?:(hole_\d{2}_))?(\d+)', row['shot_id'])
                 self.assertIsNotNone(match)
                 session, scope, number = match.groups()
-                path = ROOT/'wgt_debug/runs'/session/f'{scope or ""}shot_{int(number):02d}_result.json'
+                path = ROOT/'automation_debug/runs'/session/f'{scope or ""}shot_{int(number):02d}_result.json'
                 payload = json.loads(path.read_text(encoding='utf-8-sig'))
                 before, after = payload['before'], payload['after']
                 self.assertIs(before['player'], True)

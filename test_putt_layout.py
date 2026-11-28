@@ -6,12 +6,12 @@ import cv2
 import execution_engine as live
 
 ROOT=Path(r'Automation-Agent project root')
-RUN=ROOT/'wgt_debug/runs/20261112_020415_9840572f'
+RUN=ROOT/'automation_debug/runs/20261112_020415_9840572f'
 RECT=dict(left=37,top=46,width=1288,height=728)
 
 class PuttLayoutTests(unittest.TestCase):
     def test_actual_high_approach_badge_reads_without_camera_movement(self):
-        frame=cv2.imread(str(ROOT/'wgt_debug/runs/20261114_120746_eaa7ed9f/hole_01_ready_wait_5.png'))
+        frame=cv2.imread(str(ROOT/'automation_debug/runs/20261114_120746_eaa7ed9f/hole_01_ready_wait_5.png'))
         sign=live.find_distance_sign(frame)
         self.assertIsNotNone(sign)
         self.assertLess(sign[1],.09*frame.shape[0])
@@ -23,7 +23,7 @@ class PuttLayoutTests(unittest.TestCase):
         send.assert_not_called()
 
     def test_actual_flag_obscured_badge_with_sixty_foot_putter(self):
-        run=ROOT/'wgt_debug/runs/20261117_220207_51c60201'
+        run=ROOT/'automation_debug/runs/20261117_220207_51c60201'
         for name in ('ready_wait_1.png','ready_wait_19.png'):
             with self.subTest(frame=name):
                 frame=cv2.imread(str(run/name))
@@ -36,14 +36,14 @@ class PuttLayoutTests(unittest.TestCase):
 
     def test_actual_stippled_golfer_badge_reads_and_missing_fields_still_refuse(self):
         from vision_engine import quick_putt_badge
-        frame=cv2.imread(str(ROOT/'wgt_debug/runs/20261114_115254_1e8a1fc2/initial_geometry.png'))
+        frame=cv2.imread(str(ROOT/'automation_debug/runs/20261114_115254_1e8a1fc2/initial_geometry.png'))
         sign=live.find_distance_sign(frame)
         badge=quick_putt_badge(frame,sign,live.ocr_text)
         self.assertIsNotNone(badge)
         self.assertEqual((badge['distance'],badge['unit']),(7.6,'ft'))
         self.assertAlmostEqual(badge['elevation_ft'],.1/12)
         self.assertEqual(badge['recovery'],'verified_periodic_golfer_stipple')
-        other=cv2.imread(str(ROOT/'wgt_debug/runs/20261114_120134_67092f58/initial_geometry.png'))
+        other=cv2.imread(str(ROOT/'automation_debug/runs/20261114_120134_67092f58/initial_geometry.png'))
         other_badge=quick_putt_badge(other,live.find_distance_sign(other),live.ocr_text)
         self.assertEqual(other_badge,badge)
         x,y,w,h=sign
@@ -79,7 +79,7 @@ class PuttLayoutTests(unittest.TestCase):
 
     def test_actual_lower_badge_position_reads_without_camera_input(self):
         path=Path(__file__).with_name('low_badge.png')
-        if not path.is_file():path=ROOT/'wgt_debug/putt_low_badge_20261112.png'
+        if not path.is_file():path=ROOT/'automation_debug/putt_low_badge_20261112.png'
         frame=cv2.imread(str(path))
         with patch.object(live,'GAME',None),patch.object(live,'send') as send:
             state=live.shot_state(frame)
@@ -99,7 +99,7 @@ class PuttLayoutTests(unittest.TestCase):
     def test_large_inch_variant_is_restricted_to_elevation_labels(self):
         import vision_engine as obs
         path=Path(__file__).with_name('low_badge.png')
-        if not path.is_file():path=ROOT/'wgt_debug/putt_low_badge_20261112.png'
+        if not path.is_file():path=ROOT/'automation_debug/putt_low_badge_20261112.png'
         frame=cv2.imread(str(path));x,y,w,h=live.find_distance_sign(frame)
         unit=frame[y+int(.54*h):y+int(.96*h),x+int(.65*w):x+w]
         self.assertIsNone(obs.unit_from_glyphs(unit,w))

@@ -16,7 +16,7 @@ import automation_core as core
 import execution_engine as live
 
 ROOT = Path(__file__).resolve().parent
-FIXTURES = ROOT if (ROOT/'wgt_debug/v48_before_shot_1.png').is_file() else Path(r'Automation-Agent project root')
+FIXTURES = ROOT if (ROOT/'automation_debug/v48_before_shot_1.png').is_file() else Path(r'Automation-Agent project root')
 live.SWING_TEMPLATE = FIXTURES/'swing_button.png'
 live.CALIBRATION = FIXTURES/'automation_accuracy.json'
 
@@ -85,7 +85,7 @@ class CoreTests(unittest.TestCase):
         self.assertIsNone(core.detect_meter(np.zeros((40, 1000, 3), dtype=np.uint8)))
 
     def test_real_pitch_meter_uses_visible_corners_when_one_border_extends(self):
-        run=FIXTURES/'wgt_debug/runs/20261122_214328_9c21de5b'
+        run=FIXTURES/'automation_debug/runs/20261122_214328_9c21de5b'
         frame=cv2.imread(str(run/'hole_01_post_shot_read_1795405653711724900.png'))
         self.assertIsNotNone(frame)
         height,width=frame.shape[:2]
@@ -155,7 +155,7 @@ class CoreTests(unittest.TestCase):
     def test_saved_screenshots_have_real_meter(self):
         for name in ('v48_before_shot_1.png', 'v47_before_shot_1.png'):
             with self.subTest(name=name):
-                frame = cv2.imread(str(FIXTURES/'wgt_debug'/name))
+                frame = cv2.imread(str(FIXTURES/'automation_debug'/name))
                 h, w = frame.shape[:2]
                 r = core.meter_rect(dict(left=0, top=0, width=w, height=h))
                 image = frame[r['top']:r['top']+r['height'], r['left']:r['left']+r['width']]
@@ -168,7 +168,7 @@ class CoreTests(unittest.TestCase):
     def test_real_saved_yellow_fill_expands_left_of_neutral(self):
         readings = []
         for name in ('power_check_5.png','power_check_15.png','power_check_30.png'):
-            frame = cv2.imread(str(FIXTURES/'wgt_debug'/name))
+            frame = cv2.imread(str(FIXTURES/'automation_debug'/name))
             meter = core.detect_meter(frame)
             self.assertIsNotNone(meter)
             self.assertAlmostEqual(meter.zero,535,delta=3)
@@ -181,7 +181,7 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(readings, sorted(readings))
 
     def test_real_saved_green_return_starts_at_released_yellow_edge(self):
-        image = cv2.imread(str(FIXTURES/'wgt_debug/green_return_review.png'))
+        image = cv2.imread(str(FIXTURES/'automation_debug/green_return_review.png'))
         # Existing producer writes 25 tiles of 850x60 (wgt_before_green_fix_v2).
         self.assertEqual(image.shape[:2],(1500,850))
         first = image[:60]
@@ -205,7 +205,7 @@ class ScreenshotTests(unittest.TestCase):
         live.setup()
 
     def test_tee_sign_is_282_not_hole_length_527(self):
-        frame = cv2.imread(str(FIXTURES/'wgt_debug/v48_before_shot_1.png'))
+        frame = cv2.imread(str(FIXTURES/'automation_debug/v48_before_shot_1.png'))
         state = live.shot_state(frame)
         self.assertEqual(state['distance'], 282)
         self.assertEqual(state['unit'], 'yd')
@@ -219,7 +219,7 @@ class ScreenshotTests(unittest.TestCase):
         self.assertIsNotNone(live.swing_button(frame, r))
 
     def test_putt_sign_59_decimal_and_range_300_feet(self):
-        frame = cv2.imread(str(FIXTURES/'wgt_debug/v47_before_shot_1.png'))
+        frame = cv2.imread(str(FIXTURES/'automation_debug/v47_before_shot_1.png'))
         state = live.shot_state(frame)
         self.assertEqual(state['distance'], 5.9)
         self.assertEqual(state['unit'], 'ft')

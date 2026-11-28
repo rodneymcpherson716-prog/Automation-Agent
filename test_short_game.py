@@ -17,7 +17,7 @@ from vision_engine import PowerCalibration
 PROJECT=Path(r'Automation-Agent project root')
 FIXTURE=Path(__file__).with_name('short_game_live.png')
 if not FIXTURE.is_file():
-    FIXTURE=PROJECT/'wgt_debug/short_game_fixture_20261110.png'
+    FIXTURE=PROJECT/'automation_debug/short_game_fixture_20261110.png'
 
 
 def state(mode='CHIP',**changes):

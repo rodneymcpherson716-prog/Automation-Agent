@@ -11,7 +11,7 @@ from context_manager import ContextObserver,GameCoordinator,solo_header_layout
 ROOT=Path(r'Automation-Agent project root')
 FIXTURE=Path(__file__).with_name('solo_tee.png')
 if not FIXTURE.is_file():
-    FIXTURE=ROOT/'wgt_debug/solo_profile_tee_20261111.png'
+    FIXTURE=ROOT/'automation_debug/solo_profile_tee_20261111.png'
 
 class SoloProfileTests(unittest.TestCase):
     @classmethod
@@ -62,7 +62,7 @@ class SoloProfileTests(unittest.TestCase):
         observer=self.observer();observer.regions={}
         for n in (0,14,28,57,71,79):
             with self.subTest(frame=n):
-                frame=cv2.imread(str(ROOT/f'wgt_debug/multiplayer_20261111_070215/frame_{n:03d}.png'))
+                frame=cv2.imread(str(ROOT/f'automation_debug/multiplayer_20261111_070215/frame_{n:03d}.png'))
                 self.assertFalse(solo_header_layout(frame))
                 self.assertIsNotNone(observer.read_hud(frame))
                 c=observer.observe(frame,dict(player=True,hole=2,shot=1),now=100+n)

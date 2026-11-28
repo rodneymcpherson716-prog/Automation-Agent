@@ -135,7 +135,7 @@ def import_captures(database, runs):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--database', type=Path, default=DATABASE)
-    parser.add_argument('--runs', type=Path, default=Path('wgt_debug/runs'))
+    parser.add_argument('--runs', type=Path, default=Path('automation_debug/runs'))
     args = parser.parse_args()
     try:
         print(json.dumps(import_captures(args.database, args.runs), indent=2))

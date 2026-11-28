@@ -12,7 +12,7 @@ ROOT=Path(r'Automation-Agent project root')
 class SoloFreshnessTests(unittest.TestCase):
     def test_chip_flag_pixels_require_matching_fresh_yardage_and_unit(self):
         live.setup()
-        run=ROOT/'wgt_debug/runs/20261122_130610_a294c8f6'
+        run=ROOT/'automation_debug/runs/20261122_130610_a294c8f6'
         previous,fresh=[cv2.imread(str(run/f'hole_01_context_{i:05d}.png')) for i in (37,38)]
         self.assertTrue(all(frame is not None for frame in (previous,fresh)))
         state=live.shot_state(previous)
@@ -28,7 +28,7 @@ class SoloFreshnessTests(unittest.TestCase):
 
     def test_animated_pitch_badge_requires_matching_fresh_elevation(self):
         live.setup()
-        run=ROOT/'wgt_debug/runs/20261120_061823_6fe89608'
+        run=ROOT/'automation_debug/runs/20261120_061823_6fe89608'
         previous=cv2.imread(str(run/'context_00009.png'))
         fresh=cv2.imread(str(run/'context_00010.png'))
         self.assertIsNotNone(previous)
@@ -55,7 +55,7 @@ class SoloFreshnessTests(unittest.TestCase):
         self.assertFalse(_solo_static_hud_unchanged(previous,erased,state,live.reread_elevation))
 
     def test_static_refresh_rejects_changed_distance_elevation_unit_and_arrow(self):
-        frame=cv2.imread(str(ROOT/'wgt_debug/runs/20261114_120746_eaa7ed9f/hole_01_ready_wait_5.png'))
+        frame=cv2.imread(str(ROOT/'automation_debug/runs/20261114_120746_eaa7ed9f/hole_01_ready_wait_5.png'))
         x,y,w,h=548,65,81,62
         state=dict(mode='FULL',sign=[x,y,w,h],wind=dict(high_mph=0))
         self.assertTrue(_solo_static_hud_unchanged(frame,frame.copy(),state))
@@ -73,7 +73,7 @@ class SoloFreshnessTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.frame=cv2.imread(str(ROOT/'wgt_debug/solo_profile_tee_20261111.png'))
+        cls.frame=cv2.imread(str(ROOT/'automation_debug/solo_profile_tee_20261111.png'))
 
     def observer(self,solo=True,player=True,text=''):
         self.clock=[100.]
@@ -126,7 +126,7 @@ class SoloFreshnessTests(unittest.TestCase):
 
     def test_actual_team_panel_does_not_use_solo_fast_path(self):
         observer,state=self.observer()
-        frame=cv2.imread(str(ROOT/'wgt_debug/multiplayer_20261111_070215/frame_028.png'))
+        frame=cv2.imread(str(ROOT/'automation_debug/multiplayer_20261111_070215/frame_028.png'))
         c=observer.observe(frame,state,now=100)
         self.assertIn('current_aim_hazards',c['raw'])
         self.assertFalse(c['permission']['allowed'])

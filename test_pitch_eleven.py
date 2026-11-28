@@ -11,7 +11,7 @@ class PitchElevenTests(unittest.TestCase):
         live.setup()
         path=Path(__file__).with_name('pitch_eleven.png')
         if not path.is_file():
-            path=PROJECT/'wgt_debug/pitch_eleven_fixture_20261110.png'
+            path=PROJECT/'automation_debug/pitch_eleven_fixture_20261110.png'
         f=cv2.imread(str(path));self.assertIsNotNone(f)
         h,w=f.shape[:2]
         with patch.object(live,'CALIBRATION',PROJECT/'automation_accuracy.json'),patch.object(live,'SWING_TEMPLATE',PROJECT/'swing_button.png'),patch.object(live,'send') as send:
@@ -42,7 +42,7 @@ class PitchElevenTests(unittest.TestCase):
         live.setup()
         path=Path(__file__).with_name('pitch_eleven.png')
         if not path.is_file():
-            path=PROJECT/'wgt_debug/pitch_eleven_fixture_20261110.png'
+            path=PROJECT/'automation_debug/pitch_eleven_fixture_20261110.png'
         stats=live.shot_stats(cv2.imread(str(path)))
         self.assertIsNotNone(stats)
         self.assertEqual(stats['carry_yd'],.83)

@@ -161,7 +161,7 @@ class ShotCaptureTests(unittest.TestCase):
 
     def test_new_result_log_reimport_preserves_trace_and_does_not_promote_forged_flags(self):
         with tempfile.TemporaryDirectory() as folder:
-            root = Path(folder);run = root/'wgt_debug/runs/offline'
+            root = Path(folder);run = root/'automation_debug/runs/offline'
             run.mkdir(parents=True)
             s = state();a = after_state(s);t = trace('offline:hole_01_1')
             packet = build_shot_capture(t['shot_id'], s, a, .5, dict(power=.5), t, 'next')
@@ -203,7 +203,7 @@ class ShotCaptureTests(unittest.TestCase):
                 s['lie'] = 'ROUGH'  # A later read must not rewrite pre-shot evidence.
                 return 'next', a
             try:
-                with patch.object(live, 'ROOT', root), patch.object(live, 'DEBUG', root/'wgt_debug'), \
+                with patch.object(live, 'ROOT', root), patch.object(live, 'DEBUG', root/'automation_debug'), \
                         patch.object(live, 'GAME', Mock(completed=False)), patch.object(live, 'DIAGNOSTICS', session), \
                         patch.object(live, 'LEARNING', engine), patch.object(live, 'POWER_MODEL', model), \
                         patch.object(model, 'record'), patch.object(live, 'park_on_meter'), \

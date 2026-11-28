@@ -36,7 +36,7 @@ class RepairTests(unittest.TestCase):
         live.setup()
         fixture=Path(__file__).with_name('left_target_hybrid.png')
         if not fixture.is_file():
-            fixture=PROJECT/'wgt_debug/left_target_hybrid_fixture_20261110.png'
+            fixture=PROJECT/'automation_debug/left_target_hybrid_fixture_20261110.png'
         f=cv2.imread(str(fixture))
         self.assertIsNotNone(f)
         h,w=f.shape[:2]

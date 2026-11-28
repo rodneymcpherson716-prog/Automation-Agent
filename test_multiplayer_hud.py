@@ -19,7 +19,7 @@ class MultiplayerHudTests(unittest.TestCase):
    return live.ready_meter(im,r) is not None and live.swing_button(im,r) is not None
   cls.reader=TeamHudReader(ROOT,cls.spec,text_data,ready)
  def frame(self,n,second=False):
-  return cv2.imread(str(ROOT/f'wgt_debug/multiplayer_20261111_{"071035" if second else "070215"}/frame_{n:03d}.png'))
+  return cv2.imread(str(ROOT/f'automation_debug/multiplayer_20261111_{"071035" if second else "070215"}/frame_{n:03d}.png'))
  def context(self,frame):
   observer=ContextObserver(ROOT)
   observer.team_hud=self.reader;observer.layout_verified=True

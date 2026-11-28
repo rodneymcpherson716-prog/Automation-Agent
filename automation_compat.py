@@ -28,7 +28,7 @@ PLAYER = "tigerwould52"
 
 SWING_PNG = ROOT / "swing_button.png"
 CALIBRATION = ROOT / "automation_accuracy.json"
-DEBUG = ROOT / "wgt_debug"
+DEBUG = ROOT / "automation_debug"
 DEBUG.mkdir(exist_ok=True)
 
 F9 = 0x78
@@ -478,7 +478,7 @@ def read_club(frame):
         ):
             return best
 
-    folder = ROOT / "wgt_debug"
+    folder = ROOT / "automation_debug"
     folder.mkdir(exist_ok=True)
 
     cv2.imwrite(
@@ -2552,7 +2552,7 @@ def auto_prepare_club_and_swing(hwnd, rect, sct, state):
             "Restart without a yardage backup."
         )
 
-    reader = ROOT / "wgt_putt_read.py"
+    reader = ROOT / "automation_putt_read.py"
 
     if not reader.is_file():
         raise RuntimeError(

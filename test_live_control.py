@@ -11,7 +11,7 @@ from vision_engine import visible_hole_lock
 PROJECT=Path(r'Automation-Agent project root')
 DRIVER=Path(__file__).with_name('preflight.png')
 if not DRIVER.is_file():
-    DRIVER=PROJECT/'wgt_debug/driver_preflight_fixture_20261110.png'
+    DRIVER=PROJECT/'automation_debug/driver_preflight_fixture_20261110.png'
 
 
 class LiveReadingTests(unittest.TestCase):
@@ -47,7 +47,7 @@ class LiveReadingTests(unittest.TestCase):
     def test_live_second_shot_sign_border_does_not_merge_into_cloud(self):
         path=Path(__file__).with_name('approach_live.png')
         if not path.is_file():
-            path=PROJECT/'wgt_debug/approach_live_fixture_20261110.png'
+            path=PROJECT/'automation_debug/approach_live_fixture_20261110.png'
         frame=cv2.imread(str(path))
         self.assertIsNotNone(frame)
         h,w=frame.shape[:2]
@@ -73,7 +73,7 @@ class LiveReadingTests(unittest.TestCase):
         self.assertEqual(exact['distance'],2.4)
 
     def test_actual_putting_lock_is_recognized_but_tee_has_no_lock(self):
-        frame=cv2.imread(str(PROJECT/'wgt_debug/short_game_fixture_20261110.png'))
+        frame=cv2.imread(str(PROJECT/'automation_debug/short_game_fixture_20261110.png'))
         self.assertIsNotNone(visible_hole_lock(frame,live.find_distance_sign(frame)))
         tee=cv2.imread(str(DRIVER))
         self.assertIsNone(visible_hole_lock(tee,live.find_distance_sign(tee)))

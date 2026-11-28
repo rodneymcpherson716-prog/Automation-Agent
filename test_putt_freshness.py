@@ -22,7 +22,7 @@ class PuttFreshnessTests(unittest.TestCase):
         live.setup()
         paths=[LOCAL/f'probe_{i}.png' for i in (0,1)]
         if not all(p.is_file() for p in paths):
-            paths=[ROOT/f'wgt_debug/putt_freshness_{i}_20261112.png' for i in (0,1)]
+            paths=[ROOT/f'automation_debug/putt_freshness_{i}_20261112.png' for i in (0,1)]
         cls.frames=[cv2.imread(str(p)) for p in paths]
         cls.sign=live.find_distance_sign(cls.frames[0])
         f=cls.frames[0];h,w=f.shape[:2]
@@ -71,7 +71,7 @@ class PuttFreshnessTests(unittest.TestCase):
         self.assertFalse(c['permission']['allowed'])
 
     def test_final_turn_check_recaptures_the_actual_animated_flag(self):
-        run=LOCAL/'wgt_debug/runs/20261121_125508_3c47a9e1'
+        run=LOCAL/'automation_debug/runs/20261121_125508_3c47a9e1'
         old,covered,fresh=[cv2.imread(str(run/f'hole_01_context_{i:05d}.png')) for i in (1,2,3)]
         self.assertTrue(all(frame is not None for frame in (old,covered,fresh)))
         sign=live.find_distance_sign(old)
@@ -219,7 +219,7 @@ class PuttFreshnessTests(unittest.TestCase):
 class LiveGreenDecimalTests(unittest.TestCase):
     def test_short_putt_rechecks_decimal_after_one_pixel_badge_border_change(self):
         live.setup()
-        run=LOCAL/'wgt_debug/runs/20261126_004514_e82c52a1'
+        run=LOCAL/'automation_debug/runs/20261126_004514_e82c52a1'
         old,fresh=[cv2.imread(str(run/f'hole_01_context_{index:05d}.png')) for index in (5,6)]
         self.assertTrue(all(frame is not None for frame in (old,fresh)))
         sign=live.find_distance_sign(old)
@@ -232,7 +232,7 @@ class LiveGreenDecimalTests(unittest.TestCase):
 
     def test_birdie_putt_rechecks_both_digits_of_eleven_inches(self):
         live.setup()
-        run=LOCAL/'wgt_debug/runs/20261126_002605_7d3da041'
+        run=LOCAL/'automation_debug/runs/20261126_002605_7d3da041'
         for name in ('hole_01_stopped_frame.png','hole_01_post_shot_read_1795674604319273200.png'):
             with self.subTest(name=name):
                 frame=cv2.imread(str(run/name))
@@ -247,7 +247,7 @@ class LiveGreenDecimalTests(unittest.TestCase):
                 self.assertNotEqual(changed,badge)
 
     def test_birdie_putt_confirms_fractional_elevation_after_threshold_disagreement(self):
-        run=LOCAL/'wgt_debug/runs/20261122_124116_eb483400'
+        run=LOCAL/'automation_debug/runs/20261122_124116_eb483400'
         live.setup()
         for name in ('initial_geometry.png','hole_01_context_00005.png'):
             with self.subTest(name=name):
@@ -261,7 +261,7 @@ class LiveGreenDecimalTests(unittest.TestCase):
 
     def test_fringe_putt_confirms_distance_after_threshold_disagreement(self):
         live.setup()
-        path=LOCAL/'wgt_debug/runs/20261122_130125_497be5c6/initial_geometry.png'
+        path=LOCAL/'automation_debug/runs/20261122_130125_497be5c6/initial_geometry.png'
         frame=cv2.imread(str(path))
         self.assertIsNotNone(frame)
         sign=live.find_distance_sign(frame)
@@ -274,7 +274,7 @@ class LiveGreenDecimalTests(unittest.TestCase):
                  '20261122_051851_85c8a17e/initial_geometry.png')
         for path in paths:
             with self.subTest(path=path):
-                frame=cv2.imread(str(LOCAL/'wgt_debug/runs'/path))
+                frame=cv2.imread(str(LOCAL/'automation_debug/runs'/path))
                 self.assertIsNotNone(frame)
                 badge=quick_putt_badge(frame,live.find_distance_sign(frame),live.ocr_text)
                 self.assertEqual(badge,dict(distance=32.8,unit='ft',elevation_ft=1.0))
@@ -282,7 +282,7 @@ class LiveGreenDecimalTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         live.setup()
-        run=ROOT/'wgt_debug/runs/20261118_025714_0df1a399'
+        run=ROOT/'automation_debug/runs/20261118_025714_0df1a399'
         cls.cases=[]
         for path in sorted(run.glob('*post_shot_read*.json')):
             state=json.loads(path.read_text(encoding='utf-8-sig'))
@@ -316,7 +316,7 @@ class LiveGreenDecimalTests(unittest.TestCase):
     def test_actual_green_transition_reaches_the_putting_handoff(self):
         old,state=self.cases[0]
         fresh,_=self.cases[-1]
-        run=ROOT/'wgt_debug/runs/20261118_025714_0df1a399'
+        run=ROOT/'automation_debug/runs/20261118_025714_0df1a399'
         before=json.loads((run/'hole_01_shot_03_plan.json').read_text())['state']
         motion=Mock()
         motion.report.return_value=json.loads((run/'hole_01_shot_03_motion.json').read_text())

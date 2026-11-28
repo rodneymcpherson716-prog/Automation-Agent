@@ -982,7 +982,7 @@ class Session:
 
     def __init__(self,root):
         self.root=Path(root)
-        self.path=self.root/'wgt_debug'/'runs'/(datetime.now().strftime('%Y%m%d_%H%M%S')+'_'+uuid.uuid4().hex[:8])
+        self.path=self.root/'automation_debug'/'runs'/(datetime.now().strftime('%Y%m%d_%H%M%S')+'_'+uuid.uuid4().hex[:8])
         self.path.mkdir(parents=True)
         self.events_file=(self.path/'events.jsonl').open('a',encoding='utf-8',buffering=1)
         self.console_file=(self.path/'console.log').open('a',encoding='utf-8',buffering=1)
@@ -1070,7 +1070,7 @@ class Session:
             self.event('session_closed',status=status,**data)
             result={**data,'status':status,'path':str(self.path)}
             (self.path/'result.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
-            (self.root/'wgt_debug'/'latest_run.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
+            (self.root/'automation_debug'/'latest_run.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
             self.flush_console()
         finally:
             self.events_file.close()

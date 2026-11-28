@@ -62,7 +62,7 @@ class BunkerPowerTests(unittest.TestCase):
 
     def test_real_saved_bunker_label_preserves_display_without_inferring_loss(self):
         live.setup()
-        frame = cv2.imread(str(ROOT/'wgt_debug/bunker_transition_fixture_20261110.png'))
+        frame = cv2.imread(str(ROOT/'automation_debug/bunker_transition_fixture_20261110.png'))
         self.assertIsNotNone(frame)
         result = verified_bunker_readings([dict(text='BUNKER')], frame)
         self.assertIsNotNone(result)

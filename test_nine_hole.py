@@ -19,14 +19,14 @@ class NineHoleTests(unittest.TestCase):
         live.setup()
 
     def test_actual_live_putt_decimal_and_units(self):
-        frame=cv2.imread(str(ROOT/'wgt_debug/nine_hole_putt_reference_20261112.png'))
+        frame=cv2.imread(str(ROOT/'automation_debug/nine_hole_putt_reference_20261112.png'))
         badge=quick_putt_badge(frame,live.find_distance_sign(frame),live.ocr_text)
         self.assertIsNotNone(badge)
         self.assertEqual((badge['distance'],badge['unit']),(17.5,'ft'))
         self.assertAlmostEqual(badge['elevation_ft'],.05)
 
     def test_hidden_putt_unit_and_number_refuse(self):
-        frame=cv2.imread(str(ROOT/'wgt_debug/nine_hole_putt_reference_20261112.png'))
+        frame=cv2.imread(str(ROOT/'automation_debug/nine_hole_putt_reference_20261112.png'))
         sign=live.find_distance_sign(frame);x,y,w,h=sign
         for region in ((x+int(.69*w),y+int(.12*w),x+w,y+int(.40*w)),
                        (x+int(.12*w),y+int(.06*w),x+int(.74*w),y+int(.40*w))):
@@ -34,14 +34,14 @@ class NineHoleTests(unittest.TestCase):
             self.assertIsNone(quick_putt_badge(altered,sign,live.ocr_text))
 
     def test_faded_target_cannot_turn_five_point_nine_into_nine_point_nine(self):
-        frame=cv2.imread(str(ROOT/'wgt_debug/v47_before_shot_1.png'))
+        frame=cv2.imread(str(ROOT/'automation_debug/v47_before_shot_1.png'))
         sign=live.find_distance_sign(frame)
         self.assertIsNone(quick_putt_badge(frame,sign,live.ocr_text))
         state=live.shot_state(frame)
         self.assertEqual((state['distance'],state['unit']),(5.9,'ft'))
 
     def test_actual_putter_range_excludes_arrow_artifact(self):
-        frame=cv2.imread(str(ROOT/'wgt_debug/nine_hole_putt_reference_20261112.png'))
+        frame=cv2.imread(str(ROOT/'automation_debug/nine_hole_putt_reference_20261112.png'))
         state=live.shot_state(frame)
         self.assertEqual((state['club_range'],state['club_unit']),(30.,'ft'))
         self.assertEqual(json.loads(json.dumps(state))['raw']['putter_range_evidence']['glyph_bounds'],
@@ -51,13 +51,13 @@ class NineHoleTests(unittest.TestCase):
         for path,value in (('nine_hole_putt_reference_20261112.png',30),
             ('runs/20261112_034917_3d0c2dc8/ready_wait_4.png',150),
             ('runs/20261112_040025_fd6264f3/ready_wait_4.png',300)):
-            frame=cv2.imread(str(ROOT/'wgt_debug'/path))
+            frame=cv2.imread(str(ROOT/'automation_debug'/path))
             with self.subTest(value=value):
                 self.assertEqual(read_putter_range(frame,live.ocr_text)['value'],value)
 
     def fifty_frame(self):
-        frame=cv2.imread(str(ROOT/'wgt_debug/nine_hole_putt_reference_20261112.png'))
-        source=cv2.imread(str(ROOT/'wgt_debug/runs/20261112_034917_3d0c2dc8/ready_wait_4.png'))
+        frame=cv2.imread(str(ROOT/'automation_debug/nine_hole_putt_reference_20261112.png'))
+        source=cv2.imread(str(ROOT/'automation_debug/runs/20261112_034917_3d0c2dc8/ready_wait_4.png'))
         h,w=frame.shape[:2];left,top=int(.122*w),int(.938*h)
         digits=source[top:int(.966*h),left:int(.172*w)]
         frame[top:int(.966*h),left:int(.172*w)]=20
@@ -102,7 +102,7 @@ class NineHoleTests(unittest.TestCase):
         self.assertIsNone(read_putter_range(frame,live.ocr_text))
 
     def test_golf_hud_and_permanent_scorecard_label_do_not_complete(self):
-        frame=cv2.imread(str(ROOT/'wgt_debug/nine_hole_putt_reference_20261112.png'))
+        frame=cv2.imread(str(ROOT/'automation_debug/nine_hole_putt_reference_20261112.png'))
         self.assertIsNone(scorecard(frame,Mock(return_value=['SCORECARD'])))
 
     def test_result_modal_requires_all_labels_and_two_continue_reads(self):

@@ -13,7 +13,7 @@ from context_manager import ContextObserver,GameCoordinator
 from round_manager import scorecard
 
 ROOT=Path(__file__).parent
-RUN=ROOT/'wgt_debug/runs/20261118_034307_26a058c3'
+RUN=ROOT/'automation_debug/runs/20261118_034307_26a058c3'
 RECT=dict(left=37,top=46,width=1288,height=728)
 
 class LiveSecondShotTests(unittest.TestCase):
@@ -91,7 +91,7 @@ class RealCompletionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         live.setup()
-        cls.frame=cv2.imread(str(ROOT/'wgt_debug/runs/20261114_120517_84975c28/hole_01_stopped_frame.png'))
+        cls.frame=cv2.imread(str(ROOT/'automation_debug/runs/20261114_120517_84975c28/hole_01_stopped_frame.png'))
 
     def test_real_completed_hole_scorecard_and_continue_are_verified(self):
         found=scorecard(self.frame,live.ocr_variants)

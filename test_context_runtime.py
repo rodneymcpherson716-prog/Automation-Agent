@@ -30,7 +30,7 @@ def state(**changes):
 class ContextRuntimeTests(unittest.TestCase):
     def test_actual_alternate_shot_watching_opponent_banner_blocks_swings(self):
         root=Path(live.__file__).parent
-        frame=cv2.imread(str(root/'wgt_debug/runs/20261111_065917_de00af09/initial_geometry.png'))
+        frame=cv2.imread(str(root/'automation_debug/runs/20261111_065917_de00af09/initial_geometry.png'))
         self.assertIsNotNone(frame)
         live.setup()
         with TemporaryDirectory() as folder:
@@ -41,7 +41,7 @@ class ContextRuntimeTests(unittest.TestCase):
         self.assertFalse(c['permission']['allowed'])
     def test_actual_mss_tee_lie_is_read_without_granting_our_turn(self):
         root=Path(live.__file__).parent
-        frame=cv2.imread(str(root/'wgt_debug/runs/20261111_045104_9c05321e/observation.png'))
+        frame=cv2.imread(str(root/'automation_debug/runs/20261111_045104_9c05321e/observation.png'))
         self.assertIsNotNone(frame)
         live.setup()
         with TemporaryDirectory() as folder:
@@ -111,7 +111,7 @@ class ContextRuntimeTests(unittest.TestCase):
                 patch.object(live,'find_wgt') as find,patch.object(live,'activate_wgt') as activate, \
                 patch.object(live,'send') as send,patch.object(live,'capture') as capture,redirect_stdout(io.StringIO()):
             self.assertEqual(live.main(['--controlled-test','--activate','--countdown','0','--concede-feet','2']),1)
-            report=json.loads((Path(folder)/'wgt_debug/latest_run.json').read_text())
+            report=json.loads((Path(folder)/'automation_debug/latest_run.json').read_text())
             self.assertIn('uncalibrated',report['reason'])
         find.assert_not_called();activate.assert_not_called();send.assert_not_called();capture.assert_not_called()
 
